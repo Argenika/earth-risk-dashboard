@@ -3,277 +3,195 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Earth Risk Intelligence</title>
-
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700;900&display=swap" rel="stylesheet">
-
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif;}
+body{background:#050816;color:white;overflow-x:hidden;}
 
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-font-family:'Inter',sans-serif;
+.bg{position:fixed;width:100%;height:100%;z-index:-10;
+background:radial-gradient(circle at 20% 20%,rgba(255,60,0,.15),transparent 30%),
+radial-gradient(circle at 80% 40%,rgba(0,200,255,.12),transparent 35%),#050816;}
+
+.hero{height:100vh;display:flex;flex-direction:column;justify-content:center;padding-left:8%;}
+.hero h1{font-size:90px;font-weight:900;line-height:0.95;max-width:900px;}
+.hero p{margin-top:25px;font-size:22px;color:#8ea4d2;max-width:700px;}
+.glow{color:#00d9ff;text-shadow:0 0 40px rgba(0,217,255,.5);}
+
+.orb{position:absolute;border-radius:50%;filter:blur(100px);animation:float 10s infinite ease-in-out;}
+.orb1{width:300px;height:300px;background:#ff4400;top:100px;right:100px;}
+.orb2{width:250px;height:250px;background:#00c8ff;bottom:100px;left:50px;}
+@keyframes float{50%{transform:translateY(-40px);}}
+
+.live{position:fixed;top:30px;right:40px;display:flex;align-items:center;gap:10px;font-size:14px;z-index:999;}
+.dot{width:10px;height:10px;background:#00ff66;border-radius:50%;animation:pulse 1s infinite;}
+@keyframes pulse{50%{transform:scale(1.7);opacity:.3;}}
+
+.section{padding:60px 80px;}
+.title{font-size:42px;margin-bottom:30px;}
+
+/* MAPA */
+#map{
+  width:100%;
+  height:500px;
+  border-radius:24px;
+  border:1px solid rgba(255,255,255,.1);
+  z-index:1;
 }
 
-body{
-background:#050816;
-color:white;
-overflow-x:hidden;
-}
+/* CARDS */
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px;}
+.card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.05);
+backdrop-filter:blur(20px);border-radius:24px;padding:25px;transition:.4s;position:relative;overflow:hidden;}
+.card:hover{transform:translateY(-6px);border-color:#00d9ff;}
+.card::before{content:"";position:absolute;width:100%;height:2px;top:0;left:0;
+background:linear-gradient(90deg,#ff3c00,#00d9ff);}
+.card.high::before{background:linear-gradient(90deg,#ff0000,#ff6b00);}
+.card.medium::before{background:linear-gradient(90deg,#ff6b00,#ffcc00);}
 
-/* BACKGROUND */
+.place{font-size:16px;font-weight:600;margin-bottom:10px;color:#ccd6f6;}
+.mag{font-size:40px;font-weight:900;color:#ff6b57;}
+.severity-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;margin-top:8px;}
+.severity-badge.high{background:rgba(255,0,0,.2);color:#ff6b6b;}
+.severity-badge.medium{background:rgba(255,165,0,.2);color:#ffcc00;}
+.alert-msg{font-size:15px;font-weight:500;}
+.alert-time{font-size:12px;color:#8ea4d2;margin-top:6px;}
 
-.bg{
-position:fixed;
-width:100%;
-height:100%;
-z-index:-10;
-background:
-radial-gradient(circle at 20% 20%, rgba(255,60,0,.15), transparent 30%),
-radial-gradient(circle at 80% 40%, rgba(0,200,255,.12), transparent 35%),
-radial-gradient(circle at 50% 90%, rgba(255,0,100,.1), transparent 30%),
-#050816;
-}
-
-.noise{
-position:fixed;
-width:100%;
-height:100%;
-z-index:-9;
-opacity:.04;
-background:url("https://grainy-gradients.vercel.app/noise.svg");
-}
-
-/* HERO */
-
-.hero{
-height:100vh;
-display:flex;
-flex-direction:column;
-justify-content:center;
-padding-left:8%;
-}
-
-.hero h1{
-font-size:90px;
-font-weight:900;
-line-height:0.95;
-max-width:900px;
-}
-
-.hero p{
-margin-top:25px;
-font-size:22px;
-color:#8ea4d2;
-max-width:700px;
-}
-
-.glow{
-color:#00d9ff;
-text-shadow:0 0 40px rgba(0,217,255,.5);
-}
-
-/* FLOATING ORBS */
-
-.orb{
-position:absolute;
-border-radius:50%;
-filter:blur(100px);
-animation:float 10s infinite ease-in-out;
-}
-
-.orb1{
-width:300px;
-height:300px;
-background:#ff4400;
-top:100px;
-right:100px;
-}
-
-.orb2{
-width:250px;
-height:250px;
-background:#00c8ff;
-bottom:100px;
-left:50px;
-}
-
-@keyframes float{
-50%{
-transform:translateY(-40px);
-}
-}
-
-/* SECTION */
-
-.section{
-padding:80px;
-}
-
-.title{
-font-size:42px;
-margin-bottom:40px;
-}
-
-/* GRID */
-
-.grid{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(350px,1fr));
-gap:25px;
-}
-
-/* CARD */
-
-.card{
-background:rgba(255,255,255,.04);
-border:1px solid rgba(255,255,255,.05);
-backdrop-filter:blur(20px);
-border-radius:24px;
-padding:25px;
-transition:.4s;
-position:relative;
-overflow:hidden;
-}
-
-.card:hover{
-transform:translateY(-8px);
-border-color:#00d9ff;
-}
-
-.card::before{
-content:"";
-position:absolute;
-width:100%;
-height:2px;
-top:0;
-left:0;
-background:linear-gradient(90deg,#ff3c00,#00d9ff);
-}
-
-.place{
-font-size:20px;
-font-weight:700;
-margin-bottom:15px;
-}
-
-.mag{
-font-size:40px;
-font-weight:900;
-color:#ff6b57;
-}
-
-/* LIVE DOT */
-
-.live{
-position:fixed;
-top:30px;
-right:40px;
-display:flex;
-align-items:center;
-gap:10px;
-font-size:14px;
-}
-
-.dot{
-width:10px;
-height:10px;
-background:#00ff66;
-border-radius:50%;
-animation:pulse 1s infinite;
-}
-
-@keyframes pulse{
-50%{
-transform:scale(1.7);
-opacity:.3;
-}
-}
-
+.stats{display:flex;gap:30px;margin-bottom:40px;}
+.stat{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+border-radius:16px;padding:20px 30px;text-align:center;}
+.stat-num{font-size:36px;font-weight:900;color:#00d9ff;}
+.stat-label{font-size:13px;color:#8ea4d2;margin-top:4px;}
 </style>
 </head>
-
 <body>
 
 <div class="bg"></div>
-<div class="noise"></div>
-
 <div class="orb orb1"></div>
 <div class="orb orb2"></div>
 
-<div class="live">
-<div class="dot"></div>
-LIVE DATA
-</div>
+<div class="live"><div class="dot"></div>LIVE DATA</div>
 
 <section class="hero">
-
-<h1>
-EARTH <span class="glow">RISK</span><br>
-INTELLIGENCE
-</h1>
-
-<p>
-Real-time monitoring of earthquakes and global environmental threats.
-</p>
-
+  <h1>EARTH <span class="glow">RISK</span><br>INTELLIGENCE</h1>
+  <p>Real-time monitoring of earthquakes and global environmental threats.</p>
 </section>
 
 <section class="section">
-
-<h2 class="title">
-🌍 Global Earthquakes
-</h2>
-
-<div id="earthquakes" class="grid"></div>
-
+  <h2 class="title">🗺️ Live Earthquake Map</h2>
+  <div id="map"></div>
 </section>
 
+<section class="section">
+  <div class="stats">
+    <div class="stat"><div class="stat-num" id="total-eq">—</div><div class="stat-label">Earthquakes today</div></div>
+    <div class="stat"><div class="stat-num" id="total-alerts">—</div><div class="stat-label">Alerts generated</div></div>
+    <div class="stat"><div class="stat-num" id="max-mag">—</div><div class="stat-label">Max magnitude</div></div>
+  </div>
+</section>
+
+<section class="section">
+  <h2 class="title">🌍 Recent Earthquakes</h2>
+  <div id="earthquakes" class="grid"></div>
+</section>
+
+<section class="section">
+  <h2 class="title">⚠️ Alerts</h2>
+  <div id="alerts" class="grid"></div>
+</section>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 
-async function loadEarthquakes(){
-
-const res = await fetch(
-"http://127.0.0.1:8000/earthquakes"
-);
-
-const data = await res.json();
-
-const container =
-document.getElementById("earthquakes");
-
-container.innerHTML = "";
-
-data.earthquakes.forEach(q=>{
-
-container.innerHTML += `
-<div class="card">
-
-<div class="place">
-${q.place}
-</div>
-
-<div class="mag">
-M ${q.mag}
-</div>
-
-</div>
-`;
-
+// MAPA
+const map = L.map('map', {
+  center: [20, 0],
+  zoom: 2,
+  zoomControl: true
 });
 
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+  attribution: '© OpenStreetMap © CARTO'
+}).addTo(map);
+
+let markers = [];
+
+function getMagColor(mag) {
+  if (mag >= 6) return '#ff0000';
+  if (mag >= 4) return '#ff6b00';
+  if (mag >= 2) return '#ffcc00';
+  return '#00d9ff';
+}
+
+function updateMap(earthquakes) {
+  markers.forEach(m => map.removeLayer(m));
+  markers = [];
+
+  earthquakes.forEach(eq => {
+    if (!eq.lat || !eq.lon) return;
+    const radius = Math.max(4, (eq.mag || 1) * 3);
+    const color = getMagColor(eq.mag);
+    const circle = L.circleMarker([eq.lat, eq.lon], {
+      radius,
+      fillColor: color,
+      color: color,
+      fillOpacity: 0.7,
+      weight: 1
+    }).bindPopup(`<b>${eq.place}</b><br>Magnitude: ${eq.mag}`);
+    circle.addTo(map);
+    markers.push(circle);
+  });
+}
+
+// TERREMOTOS
+async function loadEarthquakes() {
+  const res  = await fetch("http://127.0.0.1:8000/earthquakes");
+  const data = await res.json();
+  const eqs  = data.earthquakes;
+
+  updateMap(eqs);
+
+  document.getElementById('total-eq').textContent = eqs.length;
+  const maxMag = Math.max(...eqs.map(e => e.mag || 0)).toFixed(1);
+  document.getElementById('max-mag').textContent = maxMag;
+
+  const container = document.getElementById("earthquakes");
+  container.innerHTML = "";
+  eqs.slice(0, 12).forEach(q => {
+    container.innerHTML += `
+      <div class="card">
+        <div class="place">${q.place}</div>
+        <div class="mag">M ${q.mag ?? '—'}</div>
+      </div>`;
+  });
+}
+
+// ALERTAS
+async function loadAlerts() {
+  const res  = await fetch("http://127.0.0.1:8000/alerts");
+  const data = await res.json();
+  const alts = data.alerts;
+
+  document.getElementById('total-alerts').textContent = alts.length;
+
+  const container = document.getElementById("alerts");
+  container.innerHTML = "";
+  alts.forEach(a => {
+    container.innerHTML += `
+      <div class="card ${a.severity}">
+        <div class="alert-msg">${a.message}</div>
+        <span class="severity-badge ${a.severity}">${a.severity.toUpperCase()}</span>
+        <div class="alert-time">${a.created_at}</div>
+      </div>`;
+  });
 }
 
 loadEarthquakes();
-
-setInterval(
-loadEarthquakes,
-10000
-);
+loadAlerts();
+setInterval(loadEarthquakes, 10000);
+setInterval(loadAlerts, 10000);
 
 </script>
-
 </body>
 </html>
