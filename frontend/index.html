@@ -104,7 +104,11 @@ border-radius:16px;padding:20px 30px;text-align:center;}
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 
-// MAPA
+// 🔥 AÑADE ESTO ARRIBA
+const API_URL = "https://earth-risk-dashboard.onrender.com";
+
+
+// MAPA (igual)
 const map = L.map('map', {
   center: [20, 0],
   zoom: 2,
@@ -144,9 +148,9 @@ function updateMap(earthquakes) {
   });
 }
 
-// TERREMOTOS
+// ✅ TERREMOTOS (CORREGIDO)
 async function loadEarthquakes() {
-  const res  = await fetch("http://127.0.0.1:8000/earthquakes");
+  const res  = await fetch(`${API_URL}/earthquakes`);
   const data = await res.json();
   const eqs  = data.earthquakes;
 
@@ -167,9 +171,9 @@ async function loadEarthquakes() {
   });
 }
 
-// ALERTAS
+// ✅ ALERTAS (CORREGIDO)
 async function loadAlerts() {
-  const res  = await fetch("http://127.0.0.1:8000/alerts");
+  const res  = await fetch(`${API_URL}/alerts`);
   const data = await res.json();
   const alts = data.alerts;
 
@@ -187,6 +191,7 @@ async function loadAlerts() {
   });
 }
 
+// INIT
 loadEarthquakes();
 loadAlerts();
 setInterval(loadEarthquakes, 10000);
